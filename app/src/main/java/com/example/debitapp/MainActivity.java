@@ -3,10 +3,15 @@ package com.example.debitapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,28 +29,162 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, PhotoCopyAdapter.OnClick {
+    RecyclerView recyclerView;
+    RecyclerView.LayoutManager manager;
+    PhotoCopyAdapter adapter;
     CheckBox cBphotocopy,cBprinnt,cBtransfer;
     Spinner SPhotocopy,SPrint,Stransfer;
     String[] photocopy = {"", "single", "both", "A3"};
     String[] print={"","Black and White","Colour"};
     String[] transfer={"","Mobile Transfer","Internet Bills","TV Bills","Others"};
+    String custName;
     StringBuffer buffer=new StringBuffer();
-    TextView details;
-    EditText etPC1,etPC2,etPC3,etPR1,etPR2,etTR1,etTR2,etTR3,etTR4,etName;
+    EditText etPC1,etPC2,etPC3,etPR1,etPR2,etTR1,etTR2,etTR3,etTR4,etName,etPaidAmt;
     EditText cost1,cost2,cost3,cost4,cost5;
-    Button btPC1,btPC2,btPC3,calculate,btPR1,btPR2,btTR1,btTR2,btTR3,btTR4;
+    Button btPC1,btPC2,btPC3,calculate,btPR1,btPR2,btTR1,btTR2,btTR3,btTR4,update_db,Paybtn;
     double qn1,qn2,qn3,qn4,qn5=0;
     double c1,c2,c3,c4,c5,c6,c7,c8,c9=0;
     double total,total_photocopy,total_print,total_transfer;
+    double current_price,currph,currpr,currtr,paid_amt,current_price1,currph1,currpr1,currtr1;
+    double new_price,newph,newpr,newtr;
     MyDataBaseHelper mydb;
-    private static int i=0;
+    AlertDialog.Builder builder,builder1,priceBuilder;
+    AlertDialog dialog,pricedialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getSupportActionBar().setTitle("Photocopy");
+
+
+        recyclerView=findViewById(R.id.reV);
+        manager=new LinearLayoutManager(this);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(manager);
+        adapter=new PhotoCopyAdapter(this, ApplicationClass.photcopyList);
+        recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onClickUpdate(final int index) {
+        mydb=new MyDataBaseHelper(getApplicationContext());
+        qn1=qn2=qn3=qn4=qn5=0;
+        c1=c2=c3=c4=c5=c6=c7=c8=c9;
+        showView();
+        update_db.setVisibility(View.VISIBLE);
+        calculate.setVisibility(View.GONE);
+        etName.setText(ApplicationClass.photcopyList.get(index).getName());
+        currph=ApplicationClass.photcopyList.get(index).getTotal_photocopy();
+        currpr=ApplicationClass.photcopyList.get(index).getTotal_print();
+        currtr=ApplicationClass.photcopyList.get(index).getTotal_tranfer();
+        current_price=ApplicationClass.photcopyList.get(index).getPrice();
+        custName=ApplicationClass.photcopyList.get(index).getName();
+        update_db.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                newph=currph+qn1+qn2+qn3;
+                newpr=currpr+qn4+qn5;
+                newtr=currtr+c6+c7+c8+c9;
+                new_price=current_price+(qn1*c1)+(qn2*c2)+(qn3*c3)+(qn4*c4)+(qn5*c5)+c6+c7+c8+c9;
+                if(new_price==current_price)
+                {
+                    Toast.makeText(MainActivity.this,"PLease enter the new values",Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    boolean is_updated=mydb.upgrade(custName,newph,newpr,newtr,new_price);
+                    if(is_updated)
+                    {
+                        Toast.makeText(MainActivity.this,"Updated",Toast.LENGTH_SHORT).show();
+                        ApplicationClass.photcopyList.remove(index);
+                        adapter.notifyDataSetChanged();
+                        ApplicationClass.photcopyList.add(index,new Photcopy(custName,newph,newpr,newtr,new_price));
+                        adapter.notifyDataSetChanged();
+                        dialog.dismiss();
+                    }
+                    else
+                    {
+                        Toast.makeText(MainActivity.this,"Not Updated",Toast.LENGTH_SHORT).show();
+
+                    }
+                }
+
+            }
+        });
+
+
+
+
+    }
+
+    @Override
+    public void onClickPayment(final int index) {
+        mydb=new MyDataBaseHelper(getApplicationContext());
+        current_price1=ApplicationClass.photcopyList.get(index).getPrice();
+        custName=ApplicationClass.photcopyList.get(index).getName();
+        currph1=ApplicationClass.photcopyList.get(index).getTotal_photocopy();
+        currpr1=ApplicationClass.photcopyList.get(index).getTotal_print();
+        currtr1=ApplicationClass.photcopyList.get(index).getTotal_tranfer();
+        builder1=new AlertDialog.Builder(this);
+        builder1.setMessage("Do you want to pay all the due amount");
+        builder1.setCancelable(true);
+        builder1.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                int isdeleted=mydb.delete(custName);
+                if(isdeleted>0)
+                {
+                    Toast.makeText(MainActivity.this,"Paid",Toast.LENGTH_SHORT).show();
+                    ApplicationClass.photcopyList.remove(index);
+                    adapter.notifyDataSetChanged();
+
+                }
+                else
+                {
+                    Toast.makeText(MainActivity.this,"Not Paid",Toast.LENGTH_SHORT).show();
+                }
+            }
+        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, int which) {
+                dialog.cancel();
+                priceBuilder=new AlertDialog.Builder(MainActivity.this);
+                View view=LayoutInflater.from(getApplicationContext()).inflate(R.layout.update_record,null);
+                etPaidAmt=view.findViewById(R.id.eTpaidAmt);
+                Paybtn=view.findViewById(R.id.Clearbtn);
+                priceBuilder.setView(view);
+                priceBuilder.setCancelable(true);
+                pricedialog=priceBuilder.create();
+                pricedialog.show();
+
+                Paybtn.setOnClickListener(new View.OnClickListener() {
+                   @Override
+                   public void onClick(View v) {
+                       paid_amt=Double.parseDouble(etPaidAmt.getText().toString());
+                       new_price=current_price1-paid_amt;
+                       boolean isDecreased=mydb.upgrade(custName,currph,currpr,currtr,new_price);
+                       if(isDecreased)
+                       {
+                           Toast.makeText(MainActivity.this,paid_amt+" is paid",Toast.LENGTH_SHORT).show();
+                           ApplicationClass.photcopyList.remove(index);
+                           adapter.notifyDataSetChanged();
+                           ApplicationClass.photcopyList.add(index,new Photcopy(custName,currph,currpr,currtr,new_price));
+                           adapter.notifyDataSetChanged();
+                           pricedialog.dismiss();
+
+                       }
+
+                   }
+               });
+
+
+
+            }
+        });
+
+        builder1.show();
+
     }
 
     @Override
@@ -61,6 +200,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add: {
+                qn1=qn2=qn3=qn4=qn5=0;
+                c1=c2=c3=c4=c5=c6=c7=c8=c9=0;
                 showView();
             }
             default: {
@@ -71,7 +212,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void showView() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder = new AlertDialog.Builder(this);
         View view=Initialize();
         First();
 
@@ -118,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 buffer.delete(0,buffer.length());
             }
         });
-        AlertDialog dialog=builder.create();
+        dialog=builder.create();
         dialog.show();
     }
 
@@ -155,8 +296,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btTR2=view.findViewById(R.id.btTR2);
         btTR3=view.findViewById(R.id.btTR3);
         btTR4=view.findViewById(R.id.btTR4);
-        details=view.findViewById(R.id.det);
         calculate = view.findViewById(R.id.calculate);
+        update_db=view.findViewById(R.id.update_db);
         return view;
     }
     private void First()
@@ -187,6 +328,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         btTR3.setVisibility(View.GONE);
         btTR4.setVisibility(View.GONE);
         Stransfer.setVisibility(View.GONE);
+        update_db.setVisibility(View.GONE);
+
     }
 
 
@@ -211,7 +354,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 etPC1.setVisibility(View.GONE);
                 btPC1.setVisibility(View.GONE);
                 cost1.setVisibility(View.GONE);
-                buffer.append("\nPages:"+qn1+" Quantity:"+c1);
                 break;
             case R.id.phBtn2:
                 qn2=Double.parseDouble(etPC2.getText().toString());
@@ -219,7 +361,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btPC2.setVisibility(View.GONE);
                 c2=Double.parseDouble(cost2.getText().toString());
                 cost2.setVisibility(View.GONE);
-                buffer.append("\nPages:"+qn2+"Quantity:"+c2);
                 break;
             case R.id.phBtn3:
                 qn3=Double.parseDouble(etPC3.getText().toString());
@@ -227,7 +368,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btPC3.setVisibility(View.GONE);
                 c3=Double.parseDouble(cost3.getText().toString());
                 cost3.setVisibility(View.GONE);
-                buffer.append("\nPages:"+qn3+"Quantity:"+c3);
                 break;
 
             case R.id.print:
@@ -247,7 +387,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 cost4.setVisibility(View.GONE);
                 etPR1.setVisibility(View.GONE);
                 btPR1.setVisibility(View.GONE);
-                buffer.append("\nPages:"+qn4+"Quantity:"+c4);
                 break;
             case R.id.prBtn2:
                 qn5=Double.parseDouble(etPR2.getText().toString());
@@ -255,7 +394,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 etPR2.setVisibility(View.GONE);
                 btPR2.setVisibility(View.GONE);
                 cost5.setVisibility(View.GONE);
-                buffer.append("\nPages:"+qn5+"Quantity:"+c5);
                 break;
             case R.id.transfer:
                 if(cBtransfer.isChecked())
@@ -297,12 +435,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 total=(qn1*c1)+(qn2*c2)+(qn3*c3)+(qn4*c4)+(qn5*c5)+c6+c7+c8+c9;
                 if(total==0||etName.getText().toString().isEmpty()) {
                     Toast.makeText(MainActivity.this, "Please enter data", Toast.LENGTH_SHORT).show();
+
                 }
                 else
                 {
-                    i++;
-                    details.setText(buffer);
-                    insertData(i);
+
+                    insertData();
+                    dialog.dismiss();
                 }
                 break;
 
@@ -416,23 +555,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
 
-        private void insertData(int id)
+        private void insertData()
     {
+
         total_photocopy=qn1+qn2+qn3;
         total_print=qn4+qn5;
         total_transfer=c6+c7+c8+c9;
-        mydb=new MyDataBaseHelper(getApplicationContext());
+        mydb=new MyDataBaseHelper(this);
+        boolean isinserted=mydb.insert_table(etName.getText().toString(),total_photocopy,total_print,total_transfer,total);
+        if(isinserted) {
+            Toast.makeText(this, "Sucessfully added", Toast.LENGTH_SHORT).show();
+            ApplicationClass.photcopyList.add(new Photcopy(etName.getText().toString(),total_photocopy,total_print,total_transfer,total));
+            adapter.notifyDataSetChanged();
 
-
-       boolean isinserted=mydb.insert_table(id,etName.getText().toString(),total_photocopy,total_print,total_transfer,total);
-        if(isinserted)
-        {
-          Toast.makeText(this,"Sucessfully added",Toast.LENGTH_SHORT).show();
         }
         else
         {
            Toast.makeText(this,"Sucessfully not added",Toast.LENGTH_SHORT).show();
         }
+
+
 
     }
 

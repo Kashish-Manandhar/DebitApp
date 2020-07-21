@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#6FA9F111">
-
+    android:background="#CAE3F3"
+    >
     <EditText
         android:id="@+id/eTname"
         android:layout_width="match_parent"
@@ -19,6 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Phtotocopy"
+        android:fontFamily="@font/font1"
         />
 
      <Spinner
@@ -37,6 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="13sp"
+            android:inputType="number"
             android:hint="Enter the number of pages"/>
         <EditText
             android:id="@+id/cost1"
@@ -44,6 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="13sp"
+            android:inputType="number"
             android:hint="Cost per page"/>
         <Button
             android:layout_width="wrap_content"
@@ -64,14 +67,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Enter the number of pages"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
         <EditText
             android:id="@+id/cost2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Cost per page"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -84,7 +89,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:text="Done"
         android:layout_gravity="center_horizontal"
         >
 
@@ -95,6 +99,7 @@
             android:layout_weight="1"
             android:hint="Enter the number of pages"
             android:textSize="13sp"
+            android:inputType="number"
             />
         <EditText
             android:id="@+id/cost3"
@@ -102,7 +107,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Cost per page"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -117,6 +123,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="print"
+        android:fontFamily="@font/font1"
         />
 
     <Spinner
@@ -135,14 +142,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Enter the number of pages"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
         <EditText
             android:id="@+id/cost4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Cost per page"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -163,14 +172,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Enter the number of pages"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
         <EditText
             android:id="@+id/cost5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Cost per page"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
 
         <Button
             android:layout_width="wrap_content"
@@ -185,6 +196,7 @@
         android:layout_height="wrap_content"
         android:text="Transfer"
         android:id="@+id/transfer"
+        android:fontFamily="@font/font1"
         />
     <Spinner
         android:layout_width="match_parent"
@@ -202,7 +214,8 @@
             android:layout_weight="1"
             android:id="@+id/etTR1"
             android:hint="Enter the amount to be transferred"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -222,7 +235,8 @@
             android:layout_weight="1"
             android:id="@+id/etTR2"
             android:hint="Enter the amount to be transferred"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -243,7 +257,8 @@
             android:layout_weight="1"
             android:id="@+id/etTR3"
             android:textSize="13sp"
-            android:hint="Enter the amount to be transferred"/>
+            android:hint="Enter the amount to be transferred"
+            android:inputType="number"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -263,7 +278,8 @@
             android:layout_weight="1"
             android:id="@+id/etTR4"
             android:hint="Enter the amount to be transferred"
-            android:textSize="13sp"/>
+            android:textSize="13sp"
+            android:inputType="number"/>
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -277,13 +293,15 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:id="@+id/calculate"
-        android:text="calculate"/>
-
-    <TextView
-        android:layout_width="match_parent"
+        android:text="Add"
+        android:fontFamily="@font/font1"/>
+    <Button
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="details"
-        android:id="@+id/det"/>
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/update_db"
+        android:text="Update"
+        android:fontFamily="@font/font1"/>
 
 
 </LinearLayout>
